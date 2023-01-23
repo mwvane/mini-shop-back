@@ -1,4 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
+using mini_shop_api.Models;
+
 namespace mini_shop_api
 {
     public class Program
@@ -6,7 +9,8 @@ namespace mini_shop_api
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            builder.Services.AddDbContext<MyDbContext>(options =>
+               options.UseSqlServer(builder.Configuration.GetConnectionString("MyDbContext")));
             // Add services to the container.
 
             builder.Services.AddControllers();

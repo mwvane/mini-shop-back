@@ -4,6 +4,7 @@ namespace mini_shop_api.Models
 {
     public class Cart
     {
+        [Key]
         [Required]
         public int UserId { get; set; }
         [Required]
