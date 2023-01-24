@@ -24,11 +24,11 @@ namespace minishopapi.Migrations
 
             modelBuilder.Entity("mini_shop_api.Models.Cart", b =>
                 {
-                    b.Property<int>("UserId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("ItemId")
                         .HasColumnType("int");
@@ -36,7 +36,10 @@ namespace minishopapi.Migrations
                     b.Property<int>("Quantitiy")
                         .HasColumnType("int");
 
-                    b.HasKey("UserId");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
 
                     b.ToTable("Cart");
                 });
@@ -84,6 +87,10 @@ namespace minishopapi.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Lastname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

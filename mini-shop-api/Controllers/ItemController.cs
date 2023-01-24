@@ -13,10 +13,27 @@ namespace mini_shop_api.Controllers
         {
             _context = context;
         }
-        [HttpGet("getItems")]
-        public List<Item> GetItems()
+        [HttpGet("getAllItems")]
+        public List<Item> GetAllItems()
         {
             return _context.Items.ToList();
+        }
+        [HttpGet("getCartItems")]
+        public List<CartItem> GetCartItems()
+        {
+            List<Cart> cart = _context.Cart.Where(c => c.UserId == 4).ToList();
+            List<CartItem> cartItems = new List<CartItem>();
+            if (cart.Count > 0)
+            {
+                foreach (var cartItem in cart)
+                {
+                    Item i = _context.Items.Where(item => item.Id == cartItem.ItemId).FirstOrDefault();
+                    User u = _context.Users.Where(user => user.Id == cartItem.UserId).FirstOrDefault();
+                    int quantity = cartItem.Quantitiy;
+                    cartItems.Add(new CartItem() { Id = cartItem.Id, Item = i, Quantity = quantity, User = u });
+                }
+            }
+            return cartItems;
         }
     }
 }
