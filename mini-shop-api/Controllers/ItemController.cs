@@ -19,9 +19,9 @@ namespace mini_shop_api.Controllers
             return _context.Items.ToList();
         }
         [HttpGet("getCartItems")]
-        public List<CartItem> GetCartItems()
+        public List<CartItem> GetCartItems(int id)
         {
-            List<Cart> cart = _context.Cart.Where(c => c.UserId == 4).ToList();
+            List<Cart> cart = _context.Cart.Where(c => c.UserId == id).ToList();
             List<CartItem> cartItems = new List<CartItem>();
             if (cart.Count > 0)
             {
@@ -40,6 +40,13 @@ namespace mini_shop_api.Controllers
         {
             return _context.Items.Where(item => item.Id == id).FirstOrDefault().Quantity;
         }
+
+        [HttpGet("getCartCount")]
+        public int GetCartCount(int id)
+        {
+            return GetCartItems(id).Count;
+        }
+
         [HttpPost("updateCartItemQuantity")]
         public bool UpdateCartItemQuantity([FromBody] Dictionary<string, int> payload)
         {
@@ -63,17 +70,44 @@ namespace mini_shop_api.Controllers
         }
 
         [HttpPost("deleteCartItem")]
-        public bool deleteCartItem([FromBody] Dictionary<string,int> payload)
+        public bool deleteCartItem([FromBody] Dictionary<string, int> payload)
         {
             int id = payload["id"];
             Cart c = _context.Cart.Where(item => item.Id == id).FirstOrDefault();
-            if(c != null)
+            if (c != null)
             {
                 _context.Cart.Remove(c);
                 _context.SaveChanges();
                 return true;
             }
             return false;
+        }
+
+        [HttpPost("addToCart")]
+        public Result AddToCart([FromBody] Dictionary<string, int> payload)
+        {
+            int itemId = payload["itemId"];
+            int userId = payload["userId"];
+            int quantity = payload["quantity"];
+            var isExist = _context.Cart.Where(item => item.UserId == userId && item.ItemId == itemId).FirstOrDefault();
+            if (isExist != null)
+            {
+                return new Result() { Errors = new List<string> { "Item already added in cart" } };
+            }
+            else
+            {
+                if (quantity > GetItemQuantity(itemId))
+                {
+                    return new Result() { Errors = new List<string> { "No enough items in the stok" } };
+                }
+                else
+                {
+                    _context.Cart.Add(new Cart() { ItemId = itemId, UserId = userId, Quantitiy = quantity });
+                    _context.SaveChanges();
+                    return new Result() { Res = true };
+                }
+
+            }
         }
     }
 }
