@@ -64,7 +64,7 @@ namespace mini_shop_api.Controllers
                         _context.SaveChanges();
                         return new Result() { Res = true };
                     }
-                   return new Result() {Res=maxQuantity, Errors = new List<string>() {"პროდუქტის მაქსიმალური რაოდენობაა " + maxQuantity} };
+                   return new Result() {Errors = new List<string>() {"პროდუქტის მაქსიმალური რაოდენობაა " + maxQuantity} };
                 }
                 return new Result() { Errors = new List<string>() { "პროდუქტი ვერ მოიძებნა" } };
             }
