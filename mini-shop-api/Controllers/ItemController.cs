@@ -48,7 +48,7 @@ namespace mini_shop_api.Controllers
         }
 
         [HttpPost("updateCartItemQuantity")]
-        public bool UpdateCartItemQuantity([FromBody] Dictionary<string, int> payload)
+        public Result UpdateCartItemQuantity([FromBody] Dictionary<string, int> payload)
         {
             int cartId = payload["id"];
             int quantity = payload["quantity"];
@@ -57,15 +57,20 @@ namespace mini_shop_api.Controllers
                 Cart c = _context.Cart.Where(cartItem => cartItem.Id == cartId).FirstOrDefault();
                 if (c != null)
                 {
-                    c.Quantitiy = quantity;
-                    _context.SaveChanges();
-                    return true;
+                    int maxQuantity = GetItemQuantity(c.ItemId);
+                    if(quantity <= maxQuantity)
+                    {
+                        c.Quantitiy = quantity;
+                        _context.SaveChanges();
+                        return new Result() { Res = true };
+                    }
+                   return new Result() {Res=maxQuantity, Errors = new List<string>() {"პროდუქტის მაქსიმალური რაოდენობაა " + maxQuantity} };
                 }
-                return false;
+                return new Result() { Errors = new List<string>() { "პროდუქტი ვერ მოიძებნა" } };
             }
             catch
             {
-                return false;
+                return new Result() { Errors = new List<string>() { "შეცდომაა" } };
             }
         }
 
