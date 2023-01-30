@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using mini_shop_api.Models;
+using System;
+
 
 namespace mini_shop_api.Controllers
 {
@@ -35,10 +37,10 @@ namespace mini_shop_api.Controllers
             }
             return cartItems;
         }
-        [HttpGet("getItemQuantity")]
-        public int GetItemQuantity(int id)
+        [HttpGet("getItem")]
+        public Item GetItem(int id)
         {
-            return _context.Items.Where(item => item.Id == id).FirstOrDefault().Quantity;
+            return _context.Items.Where(item => item.Id == id).FirstOrDefault();
         }
 
         [HttpGet("getCartCount")]
@@ -57,14 +59,18 @@ namespace mini_shop_api.Controllers
                 Cart c = _context.Cart.Where(cartItem => cartItem.Id == cartId).FirstOrDefault();
                 if (c != null)
                 {
-                    int maxQuantity = GetItemQuantity(c.ItemId);
-                    if(quantity <= maxQuantity)
+                    Item currentItem = GetItem(c.ItemId);
+                    if (currentItem != null)
                     {
-                        c.Quantitiy = quantity;
-                        _context.SaveChanges();
-                        return new Result() { Res = true };
+                        if (currentItem.Quantity > 0 || quantity < 0)
+                        {
+                            c.Quantitiy += quantity;
+                            currentItem.Quantity += quantity * -1;
+                            _context.SaveChanges();
+                            return new Result() { Res = currentItem.Quantity };
+                        }
                     }
-                   return new Result() {Errors = new List<string>() {"პროდუქტის მაქსიმალური რაოდენობაა " + maxQuantity} };
+                    return new Result() { Errors = new List<string>() { "პროდუქტის მაქსიმალური რაოდენობაა " + currentItem.Quantity } };
                 }
                 return new Result() { Errors = new List<string>() { "პროდუქტი ვერ მოიძებნა" } };
             }
@@ -75,12 +81,13 @@ namespace mini_shop_api.Controllers
         }
 
         [HttpPost("deleteCartItem")]
-        public bool deleteCartItem([FromBody] Dictionary<string, int> payload)
+        public bool deleteCartItem([FromBody] int itemId)
         {
-            int id = payload["id"];
-            Cart c = _context.Cart.Where(item => item.Id == id).FirstOrDefault();
+            Cart c = _context.Cart.Where(item => item.Id == itemId).FirstOrDefault();
+            Item item = GetItem(c.ItemId);
             if (c != null)
             {
+                item.Quantity += c.Quantitiy;
                 _context.Cart.Remove(c);
                 _context.SaveChanges();
                 return true;
@@ -101,15 +108,17 @@ namespace mini_shop_api.Controllers
             }
             else
             {
-                if (quantity > GetItemQuantity(itemId))
+                if (quantity > GetItem(itemId).Quantity)
                 {
                     return new Result() { Errors = new List<string> { "No enough items in the stok" } };
                 }
                 else
                 {
-                    _context.Cart.Add(new Cart() { ItemId = itemId, UserId = userId, Quantitiy = quantity });
+                    Cart newItem = new Cart { ItemId = itemId, UserId = userId, Quantitiy = quantity };
+                    _context.Cart.Add(newItem);
                     _context.SaveChanges();
-                    return new Result() { Res = true };
+                    UpdateCartItemQuantity(new Dictionary<string, int>() { { "id", newItem.Id }, { "quantity", 1 } });
+                    return new Result() { Res = newItem.Id };
                 }
 
             }
