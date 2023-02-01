@@ -70,7 +70,7 @@ namespace mini_shop_api.Controllers
                             return new Result() { Res = currentItem.Quantity };
                         }
                     }
-                    return new Result() { Errors = new List<string>() { "პროდუქტის მაქსიმალური რაოდენობაა " + currentItem.Quantity } };
+                    return new Result() { Errors = new List<string>() { "პრდუქტის მარაგი ამოიწურა" } };
                 }
                 return new Result() { Errors = new List<string>() { "პროდუქტი ვერ მოიძებნა" } };
             }

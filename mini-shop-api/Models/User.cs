@@ -14,5 +14,7 @@ namespace mini_shop_api.Models
         [Required]
         public string Password { get; set; }
         public DateTime LastUpdated { get; set; }
+        [Required]
+        public string Role { get; set; } = "user";
     }
 }
