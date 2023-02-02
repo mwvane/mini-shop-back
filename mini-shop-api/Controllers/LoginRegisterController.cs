@@ -39,10 +39,6 @@ namespace mini_shop_api.Controllers
                         Res = new JwtAuthResponse
                         {
                             Token = user.Token,
-                            Firstname = user.Firstname,
-                            Lastname = user.Lastname,
-                            Id = user.Id,
-                            Role = user.Role,
                         }
                     };
                 }
@@ -115,9 +111,11 @@ namespace mini_shop_api.Controllers
             var key = Encoding.ASCII.GetBytes(Constants.JWT_SECURITY_KEY);
             var identity = new ClaimsIdentity(new Claim[]
             {
-                new Claim("Id", user.Id.ToString()),
+                new Claim("id", user.Id.ToString()),
                 new Claim(ClaimTypes.Role,user.Role),
-                new Claim(ClaimTypes.Name,$"{user.Firstname}"),
+                new Claim("lastname",$"{user.Lastname}"),
+                new Claim("firstname",$"{user.Firstname}"),
+                new Claim(ClaimTypes.Email,$"{user.Email}"),
             }); ;
             var credentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
             var tokenDescriptor = new SecurityTokenDescriptor
