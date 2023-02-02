@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace mini_shop_api.Models
 {
@@ -16,5 +17,7 @@ namespace mini_shop_api.Models
         public DateTime LastUpdated { get; set; }
         [Required]
         public string Role { get; set; } = "user";
+        [AllowNull]
+        public string? Token { get; set; }
     }
 }
