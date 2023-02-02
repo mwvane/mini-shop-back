@@ -12,8 +12,8 @@ using mini_shop_api.Models;
 namespace minishopapi.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20230201121808_Initialcreate")]
-    partial class Initialcreate
+    [Migration("20230202104743_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -102,6 +102,9 @@ namespace minishopapi.Migrations
 
                     b.Property<string>("Role")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Token")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

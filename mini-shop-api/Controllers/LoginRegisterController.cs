@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using mini_shop_api.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace mini_shop_api.Controllers
@@ -25,10 +29,22 @@ namespace mini_shop_api.Controllers
             }
             else
             {
-                var u = _context.Users.Where(user => user.Email == username && user.Password == password).FirstOrDefault();
-                if (u != null)
+                var user = _context.Users.Where(user => user.Email == username && user.Password == password).FirstOrDefault();
+
+                if (user != null)
                 {
-                    return new Result() { Res = u };
+                    user.Token = CreateJwt(user);
+                    return new Result()
+                    {
+                        Res = new JwtAuthResponse
+                        {
+                            Token = user.Token,
+                            Firstname = user.Firstname,
+                            Lastname = user.Lastname,
+                            Id = user.Id,
+                            Role = user.Role,
+                        }
+                    };
                 }
                 return new Result() { Errors = new List<string> { "Invalid username or password" } };
             }
@@ -63,7 +79,7 @@ namespace mini_shop_api.Controllers
                     catch (Exception exp)
                     {
                         Console.WriteLine(exp.Message);
-                        return new Result() {Errors = errors };
+                        return new Result() { Errors = errors };
                     }
                 }
                 return new Result() { Errors = errors };
@@ -91,6 +107,27 @@ namespace mini_shop_api.Controllers
         private bool IsEmailValid(string email)
         {
             return Regex.IsMatch(email, "^[a-zA-Z0-9_.+-]+@[email]+\\.[a-zA-Z0-9-.]+$", RegexOptions.IgnoreCase) == true;
+        }
+
+        private string CreateJwt(User user)
+        {
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(Constants.JWT_SECURITY_KEY);
+            var identity = new ClaimsIdentity(new Claim[]
+            {
+                new Claim("Id", user.Id.ToString()),
+                new Claim(ClaimTypes.Role,user.Role),
+                new Claim(ClaimTypes.Name,$"{user.Firstname}"),
+            }); ;
+            var credentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = identity,
+                Expires = DateTime.Now.AddDays(Constants.JWT_TOKEN_VALIDITY_MINS),
+                SigningCredentials = credentials,
+            };
+            var token = jwtTokenHandler.CreateToken(tokenDescriptor);
+            return jwtTokenHandler.WriteToken(token);
         }
     }
 }

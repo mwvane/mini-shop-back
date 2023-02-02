@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using mini_shop_api.Models;
 using System;
@@ -15,11 +16,14 @@ namespace mini_shop_api.Controllers
         {
             _context = context;
         }
+
+        [Authorize]
         [HttpGet("getAllItems")]
         public List<Item> GetAllItems()
         {
             return _context.Items.ToList();
         }
+        [Authorize]
         [HttpGet("getCartItems")]
         public List<CartItem> GetCartItems(int id)
         {
@@ -37,6 +41,9 @@ namespace mini_shop_api.Controllers
             }
             return cartItems;
         }
+
+
+        [Authorize]
         [HttpGet("getItem")]
         public Item GetItem(int id)
         {
@@ -48,7 +55,7 @@ namespace mini_shop_api.Controllers
         {
             return GetCartItems(id).Count;
         }
-
+        [Authorize]
         [HttpPost("updateCartItemQuantity")]
         public Result UpdateCartItemQuantity([FromBody] Dictionary<string, int> payload)
         {
@@ -80,6 +87,7 @@ namespace mini_shop_api.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("deleteCartItem")]
         public bool DeleteCartItem([FromBody] int itemId)
         {
@@ -94,7 +102,7 @@ namespace mini_shop_api.Controllers
             }
             return false;
         }
-
+        [Authorize]
         [HttpPost("addToCart")]
         public Result AddToCart([FromBody] Dictionary<string, int> payload)
         {
