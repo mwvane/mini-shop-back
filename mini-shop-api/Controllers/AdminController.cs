@@ -24,6 +24,14 @@ namespace mini_shop_api.Controllers
             bool result = DbHelpers.CRUD($"Delete from Items where id = {itemId}", _configuration);
             if (result)
             {
+                var productId = DbHelpers.Select($"select id from Cart where itemId = {itemId}", 0, _configuration);
+                if (productId.Count() > 0)
+                {
+                    foreach (var id in productId)
+                    {
+                        DbHelpers.CRUD($"Delete from Cart where id = {id}", _configuration);
+                    }
+                }
                 return new Result() { Res = true };
             }
             return new Result() { Errors = new List<string>() { "Item not deleted" } };

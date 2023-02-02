@@ -81,7 +81,7 @@ namespace mini_shop_api.Controllers
         }
 
         [HttpPost("deleteCartItem")]
-        public bool deleteCartItem([FromBody] int itemId)
+        public bool DeleteCartItem([FromBody] int itemId)
         {
             Cart c = _context.Cart.Where(item => item.Id == itemId).FirstOrDefault();
             Item item = GetItem(c.ItemId);
