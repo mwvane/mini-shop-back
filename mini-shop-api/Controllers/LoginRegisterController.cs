@@ -25,7 +25,7 @@ namespace mini_shop_api.Controllers
             string password = payload["password"];
             if (username == null || password == null)
             {
-                return new Result() { Errors = new List<string> { "Username and password is required!" } };
+                return new Result() { Errors = new List<string> { "მომხმარებლის სახელი და პაროლი აუცილებელია!" } };
             }
             else
             {
@@ -42,7 +42,7 @@ namespace mini_shop_api.Controllers
                         }
                     };
                 }
-                return new Result() { Errors = new List<string> { "Invalid username or password" } };
+                return new Result() { Errors = new List<string> { "მომხმარებლის სახელი ან პაროლი არასწორია!" } };
             }
         }
 
@@ -80,22 +80,22 @@ namespace mini_shop_api.Controllers
                 }
                 return new Result() { Errors = errors };
             }
-            return new Result() { Errors = new List<string>() { "User already exists!" } };
+            return new Result() { Errors = new List<string>() { "მომხმარებლის სახელი უკვე არსებობს!" } };
         }
         private List<string> Validateuser(User user)
         {
             List<string> errors = new List<string>();
             if (user.Firstname.Length < 2)
             {
-                errors.Add("Firstname minimum length must be 2 character");
+                errors.Add("სახელი უნდა შედგებოდეს არა ნაკლებ 2 სიმბოლოსგან");
             }
             if (user.Password.Length < 6)
             {
-                errors.Add("Password minimum length must be 6 symbols");
+                errors.Add("პაროლი უნდა შედგებოდეს არა ნაკლებ 6 სიმბოლოსგან");
             }
             if (IsEmailValid(user.Email))
             {
-                errors.Add("Incorrect email format");
+                errors.Add("მეილის ფორმატია");
 
             }
             return errors;

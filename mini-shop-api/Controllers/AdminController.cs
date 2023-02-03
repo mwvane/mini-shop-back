@@ -36,13 +36,13 @@ namespace mini_shop_api.Controllers
             }
             catch (Exception ex)
             {
-                return new Result() { Errors = new List<string> { "Item not found" } };
+                return new Result() { Errors = new List<string> { "პროდუქტი ვერ მოიძებნა" } };
             }
 
             User user = DbHelpers.GetUserById(Convert.ToInt32(id.Value), this._configuration);
             if (!UserAutorizationHelper.CanDeleteItem(user, item))
             {
-                return new Result() { Errors = new List<string> { "You don't permission to create item" } };
+                return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის შექმნის უფლება" } };
             }
 
             bool result = DbHelpers.CRUD($"Delete from Items where id = {itemId}", _configuration);
@@ -58,7 +58,7 @@ namespace mini_shop_api.Controllers
                 }
                 return new Result() { Res = true };
             }
-            return new Result() { Errors = new List<string>() { "Item not deleted" } };
+            return new Result() { Errors = new List<string>() { "პროდუქტი ვერ წაიშალა" } };
 
         }
 
@@ -68,7 +68,7 @@ namespace mini_shop_api.Controllers
             Claim? id = User.Claims.FirstOrDefault(x => x.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase));
             if (id == null)
             {
-                return new Result() { Errors = new List<string> { "Something went wrong, Try again!" } };
+                return new Result() { Errors = new List<string> { "შეცდომაა, სცადე თავიდან!" } };
 
             }
             Item item;
@@ -77,13 +77,13 @@ namespace mini_shop_api.Controllers
                 item = DbHelpers.GetItemById(newItem.Id, this._configuration);
             }
             catch (Exception ex) {
-                return new Result() { Errors = new List<string> { "Item not found" } };
+                return new Result() { Errors = new List<string> { "პროდუქტი ვერ მოიძებნა" } };
             }
 
             User user = DbHelpers.GetUserById(Convert.ToInt32(id.Value), this._configuration);
             if (!UserAutorizationHelper.CanUpdateItem(user, item))
             {
-                return new Result() { Errors = new List<string> { "You don't permission to upadte item" } };
+                return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის განახლების უფლება" } };
             }
 
             bool isUpdated = DbHelpers.CRUD(
@@ -93,7 +93,7 @@ namespace mini_shop_api.Controllers
             {
                 return new Result() { Res = true };
             }
-            return new Result() { Errors = new List<string>() { "Item not updated" } };
+            return new Result() { Errors = new List<string>() { "პროდუქტი ვერ მოიძებნა" } };
         }
 
         [HttpPost("createItem")]
@@ -102,14 +102,14 @@ namespace mini_shop_api.Controllers
             Claim? id = User.Claims.FirstOrDefault(x => x.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase));
             if (id == null)
             {
-                return new Result() { Errors = new List<string> { "Something went wrong, Try again!" } };
+                return new Result() { Errors = new List<string> { "შეცდომაა, სცადეთ თავიდან!" } };
 
             }
 
             User user = DbHelpers.GetUserById(Convert.ToInt32(id.Value), this._configuration);
             if (!UserAutorizationHelper.CanCreateItem(user))
             {
-                return new Result() { Errors = new List<string> { "You don't permission to create item" } };
+                return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის წაშლის უფლება" } };
             }
 
             bool isInserted = DbHelpers.CRUD($"Insert into Items(Name,Quantity,Price,CreatedBy)values('{newItem.Name}',{newItem.Quantity},{newItem.Price},{newItem.CreatedBy})", _configuration);
@@ -117,7 +117,7 @@ namespace mini_shop_api.Controllers
             {
                 return new Result() { Res = true };
             }
-            return new Result() { Errors = new List<string> { "item not created" } };
+            return new Result() { Errors = new List<string> { "პროდუქტი ვერ მოიძებნა" } };
         }
     }
 }
