@@ -21,43 +21,67 @@ namespace mini_shop_api.Controllers
 
         }
         [HttpPost("removeItem")]
-        public Result RemoveItem([FromBody] int itemId)
+        public Result RemoveItem([FromBody] int[] itemIds)
         {
-            Claim? id = User.Claims.FirstOrDefault(x => x.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase));
-            if (id == null)
+
+            Claim? loggeduserId = User.Claims.FirstOrDefault(x => x.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase));
+            List<Item> items = new List<Item>();
+            if (loggeduserId == null)
             {
                 return new Result() { Errors = new List<string> { "Something went wrong, Try again!" } };
 
             }
-            Item item;
+
             try
             {
-                item = DbHelpers.GetItemById(itemId, this._configuration);
+                foreach (var id in itemIds)
+                {
+                    Item item = DbHelpers.GetItemById(id, this._configuration);
+                    if (item != null)
+                    {
+                        items.Add(item);
+                    }
+
+                }
             }
             catch (Exception ex)
             {
                 return new Result() { Errors = new List<string> { "პროდუქტი ვერ მოიძებნა" } };
             }
 
-            User user = DbHelpers.GetUserById(Convert.ToInt32(id.Value), this._configuration);
-            if (!UserAutorizationHelper.CanDeleteItem(user, item))
+            User user = DbHelpers.GetUserById(Convert.ToInt32(loggeduserId.Value), this._configuration);
+            try
             {
-                return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის შექმნის უფლება" } };
-            }
-
-            bool result = DbHelpers.CRUD($"Delete from Items where id = {itemId}", _configuration);
-            if (result)
-            {
-                List<object?[]> productIds = DbHelpers.SelectMultiple($"select id from Cart where itemId = {itemId}", _configuration);
-                if (productIds.Count() > 0)
+                foreach (var item in items)
                 {
-                    foreach (var _idList in productIds)
+                    if (!UserAutorizationHelper.CanDeleteItem(user, item))
                     {
-                        DbHelpers.CRUD($"Delete from Cart where id = {_idList[0]}", _configuration);
+                        return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის შექმნის უფლება" } };
+                    }
+                    bool result = DbHelpers.CRUD($"Delete from Items where id = ({item.Id})", _configuration);
+                    if (result)
+                    {
+                        List<object?[]> productIds = DbHelpers.SelectMultiple($"select id from Cart where itemId = {item.Id}", _configuration);
+                        if (productIds.Count() > 0)
+                        {
+                            foreach (var _idList in productIds)
+                            {
+                                DbHelpers.CRUD($"Delete from Cart where id = {_idList[0]}", _configuration);
+                            }
+                        }
                     }
                 }
                 return new Result() { Res = true };
+
             }
+            catch
+            {
+                return new Result() { Res = false, Errors = new List<string>() { "შეცდომაა" } };
+
+            }
+
+
+
             return new Result() { Errors = new List<string>() { "პროდუქტი ვერ წაიშალა" } };
 
         }
@@ -76,7 +100,8 @@ namespace mini_shop_api.Controllers
             {
                 item = DbHelpers.GetItemById(newItem.Id, this._configuration);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return new Result() { Errors = new List<string> { "პროდუქტი ვერ მოიძებნა" } };
             }
 
