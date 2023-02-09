@@ -47,20 +47,21 @@ namespace mini_shop_api.Controllers
         }
 
         [HttpPost("signup")]
-        public Result Signup([FromBody] Dictionary<string, string> payload)
+        public Result Signup([FromBody] User payload)
         {
             bool usernameAlreadyExists = false;
 
-            usernameAlreadyExists = _context.Users.Where(u => u.Email == payload["email"]).FirstOrDefault() != null;
+            usernameAlreadyExists = _context.Users.Where(u => u.Email == payload.Email).FirstOrDefault() != null;
 
             if (!usernameAlreadyExists)
             {
                 User newUser = new()
                 {
-                    Email = payload["email"],
-                    Firstname = payload["firstname"],
-                    Lastname = payload["lastname"],
-                    Password = payload["password"],
+                    Email = payload.Email,
+                    Firstname = payload.Firstname,
+                    Lastname = payload.Lastname,
+                    Password = payload.Password,
+                    Role = payload.Role != null ? payload.Role : "user",
                     LastUpdated = DateTime.Now
                 };
                 List<string> errors = Validateuser(newUser);
@@ -70,7 +71,7 @@ namespace mini_shop_api.Controllers
                     try
                     {
                         _context.SaveChanges();
-                        return new Result() { Res = true };
+                        return new Result() { Res = newUser.Id };
                     }
                     catch (Exception exp)
                     {

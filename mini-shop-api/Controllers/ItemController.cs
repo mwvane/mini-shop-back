@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using mini_shop_api.Models;
 using System;
@@ -23,6 +22,13 @@ namespace mini_shop_api.Controllers
         {
             return _context.Items.ToList();
         }
+        [Authorize]
+        [HttpGet("getAllUsers")]
+        public List<User> GetAllUsers()
+        {
+            return _context.Users.ToList();
+        }
+
         [Authorize]
         [HttpGet("getCartItems")]
         public List<CartItem> GetCartItems(int id)
@@ -112,13 +118,13 @@ namespace mini_shop_api.Controllers
             var isExist = _context.Cart.Where(item => item.UserId == userId && item.ItemId == itemId).FirstOrDefault();
             if (isExist != null)
             {
-                return new Result() { Errors = new List<string> { "Item already added in cart" } };
+                return new Result() { Errors = new List<string> { "პროდუქტი უკვე არსებობს კალათაში" } };
             }
             else
             {
                 if (quantity > GetItem(itemId).Quantity)
                 {
-                    return new Result() { Errors = new List<string> { "No enough items in the stok" } };
+                    return new Result() { Errors = new List<string> { "მარაგი ამოიწურა!" } };
                 }
                 else
                 {
