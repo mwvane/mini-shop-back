@@ -20,6 +20,7 @@ namespace mini_shop_api.Controllers
             _configuration = config;
 
         }
+
         [HttpPost("removeItem")]
         public Result RemoveItem([FromBody] int[] itemIds)
         {
@@ -28,8 +29,7 @@ namespace mini_shop_api.Controllers
             List<Item> items = new List<Item>();
             if (loggeduserId == null)
             {
-                return new Result() { Errors = new List<string> { "Something went wrong, Try again!" } };
-
+                return new Result() { Errors = new List<string> { "შეცდომაა, სცადე თავიდან!" } };
             }
 
             try
@@ -41,7 +41,6 @@ namespace mini_shop_api.Controllers
                     {
                         items.Add(item);
                     }
-
                 }
             }
             catch (Exception ex)
@@ -58,7 +57,7 @@ namespace mini_shop_api.Controllers
                     {
                         return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის შექმნის უფლება" } };
                     }
-                    bool result = DbHelpers.CRUD($"Delete from Items where id = ({item.Id})", _configuration);
+                    bool result = DbHelpers.CRUD($"Delete from Items where id = @0", new List<object> { item.Id }, _configuration);
                     if (result)
                     {
                         List<object?[]> productIds = DbHelpers.SelectMultiple($"select id from Cart where itemId = {item.Id}", _configuration);
@@ -66,25 +65,21 @@ namespace mini_shop_api.Controllers
                         {
                             foreach (var _idList in productIds)
                             {
-                                DbHelpers.CRUD($"Delete from Cart where id = {_idList[0]}", _configuration);
+                                DbHelpers.CRUD($"Delete from Cart where id = @0", new List<object> { _idList[0] }, _configuration);
                             }
                         }
                     }
                 }
                 return new Result() { Res = true };
-
             }
             catch
             {
                 return new Result() { Res = false, Errors = new List<string>() { "შეცდომაა" } };
 
             }
-
-
-
-            return new Result() { Errors = new List<string>() { "პროდუქტი ვერ წაიშალა" } };
-
         }
+
+
 
         [HttpPost("updateItem")]
         public Result UpdateItem([FromBody] Item newItem)
@@ -112,7 +107,7 @@ namespace mini_shop_api.Controllers
             }
 
             bool isUpdated = DbHelpers.CRUD(
-                $"Update Items Set Name = '{newItem.Name}',Quantity = {newItem.Quantity}, Price = {newItem.Price} where id = {newItem.Id}", _configuration);
+                $"Update Items Set Name = @0 ,Quantity = @1, Price = @2 where id = @3",new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.Id }, _configuration);
 
             if (isUpdated)
             {
@@ -120,6 +115,8 @@ namespace mini_shop_api.Controllers
             }
             return new Result() { Errors = new List<string>() { "პროდუქტი ვერ მოიძებნა" } };
         }
+
+
 
         [HttpPost("createItem")]
         public Result CreateItem([FromBody] Item newItem)
@@ -130,14 +127,14 @@ namespace mini_shop_api.Controllers
                 return new Result() { Errors = new List<string> { "შეცდომაა, სცადეთ თავიდან!" } };
 
             }
-
+            newItem.CreatedBy = Convert.ToInt32(id.Value);
             User user = DbHelpers.GetUserById(Convert.ToInt32(id.Value), this._configuration);
             if (!UserAutorizationHelper.CanCreateItem(user))
             {
                 return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის წაშლის უფლება" } };
             }
 
-            bool isInserted = DbHelpers.CRUD($"Insert into Items(Name,Quantity,Price,CreatedBy)values('{newItem.Name}',{newItem.Quantity},{newItem.Price},{newItem.CreatedBy})", _configuration);
+            bool isInserted = DbHelpers.CRUD($"Insert into Items(Name,Quantity,Price,CreatedBy)values(@0,@1,@2,@3)", new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.CreatedBy }, _configuration);
             if (isInserted)
             {
                 return new Result() { Res = true };

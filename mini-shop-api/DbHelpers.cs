@@ -9,21 +9,25 @@ namespace mini_shop_api
 {
     public static class DbHelpers
     {
-       
-        public static bool CRUD(string query, IConfiguration config)
+
+        public static bool CRUD(string query, List<object> values, IConfiguration config)
         {
             try
             {
                 SqlConnection connection = new SqlConnection(config.GetConnectionString("MyDbContext"));
-                SqlCommand comand = new SqlCommand(query, connection);
+                SqlCommand command = new SqlCommand(query, connection);
                 connection.Open();
-                comand.ExecuteNonQuery();
+                for (int i = 0; i < values.Count; i++)
+                {
+                    command.Parameters.AddWithValue($"@{i}", values[i]);
+                }
+                command.ExecuteNonQuery();
                 connection.Close();
                 return true;
             }
             catch { return false; }
         }
-        public static object?[] Select(string query,int roxIndex, IConfiguration config)
+        public static object?[] Select(string query, int roxIndex, IConfiguration config)
         {
             List<object?[]> list = new List<object?[]>();
             try
@@ -43,7 +47,7 @@ namespace mini_shop_api
                 connection.Close();
                 return list[roxIndex];
             }
-            catch(Exception ex) { throw new Exception(ex.Message); }
+            catch (Exception ex) { throw new Exception(ex.Message); }
         }
 
         public static List<object?[]> SelectMultiple(string query, IConfiguration config)
