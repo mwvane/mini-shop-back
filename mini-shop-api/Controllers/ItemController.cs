@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using mini_shop_api.Models;
-using System;
-
 
 namespace mini_shop_api.Controllers
 {
@@ -22,6 +20,7 @@ namespace mini_shop_api.Controllers
         {
             return _context.Items.ToList();
         }
+
         [Authorize]
         [HttpGet("getAllUsers")]
         public List<User> GetAllUsers()

@@ -107,7 +107,7 @@ namespace mini_shop_api.Controllers
             }
 
             bool isUpdated = DbHelpers.CRUD(
-                $"Update Items Set Name = @0 ,Quantity = @1, Price = @2 where id = @3",new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.Id }, _configuration);
+                $"Update Items Set Name = @0 ,Quantity = @1, Price = @2 where id = @3", new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.Id }, _configuration);
 
             if (isUpdated)
             {

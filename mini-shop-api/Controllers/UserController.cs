@@ -23,7 +23,7 @@ namespace mini_shop_api.Controllers
             {
                 foreach (var id in userIds)
                 {
-                    _context.Remove(_context.Users.Where(user => user.Id == id).FirstOrDefault());
+                    _context.Users.Remove(_context.Users.Where(user => user.Id == id).FirstOrDefault());
                 }
                 _context.SaveChanges();
                 return new Result() { Res = true };
