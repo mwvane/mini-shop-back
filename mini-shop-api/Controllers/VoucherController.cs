@@ -23,6 +23,18 @@ namespace mini_shop_api.Controllers
             return this._context.Vouchers.ToList();
         }
 
+        [Authorize]
+        [HttpGet("getVoucher")]
+        public Result GetVoucher(string key)
+        {
+            var voucher = this._context.Vouchers.Where(voucher => voucher.Key == key).FirstOrDefault();
+            if (voucher != null)
+            {
+                return new Result() { Res = voucher };
+            }
+            return new Result() { Errors = new List<string> { "ვაუჩერი ვერ მოიძებნა!" } };
+        }
+
         [Authorize(Roles = "admin,seller")]
         [HttpGet("generateVoucherKey")]
         public Result GenerateVoucherKey()
@@ -51,7 +63,7 @@ namespace mini_shop_api.Controllers
                     voucher.IsValid = voucher.ValidDate.Day - DateTime.Now.Day > 0 ? true : false;
                     _context.Vouchers.Add(voucher);
                     _context.SaveChanges();
-                    return new Result() { Res = voucher.Id };
+                    return new Result() { Res = voucher };
                 }
             }
         }
@@ -94,7 +106,7 @@ namespace mini_shop_api.Controllers
                 foreach (var id in voucherIds)
                 {
                     var voucher = _context.Vouchers.Where(voucher => voucher.Id == id).FirstOrDefault();
-                    if(voucher != null)
+                    if (voucher != null)
                     {
                         _context.Vouchers.Remove(voucher);
                     }

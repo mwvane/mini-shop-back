@@ -9,6 +9,7 @@ namespace mini_shop_api.Models
         public DbSet<Item> Items { get; set; } 
         public DbSet<Cart> Cart { get; set; }
         public DbSet<Voucher> Vouchers { get; set; }
+        public DbSet<SoldProduct> SoldProducts { get; set; }
 
     }
 }
