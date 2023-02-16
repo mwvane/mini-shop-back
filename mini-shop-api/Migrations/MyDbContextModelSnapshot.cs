@@ -33,10 +33,16 @@ namespace minishopapi.Migrations
                     b.Property<int>("ItemId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Quantitiy")
+                    b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<double>("TotalPrice")
+                        .HasColumnType("float");
+
                     b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VoucherPrice")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -68,6 +74,35 @@ namespace minishopapi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("mini_shop_api.Models.SoldProduct", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("totalPrice")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SoldProducts");
                 });
 
             modelBuilder.Entity("mini_shop_api.Models.User", b =>
@@ -119,6 +154,9 @@ namespace minishopapi.Migrations
 
                     b.Property<int>("CreatedBy")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsValid")
                         .HasColumnType("bit");

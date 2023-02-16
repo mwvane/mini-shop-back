@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace minishopapi.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class Initialcreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,9 @@ namespace minishopapi.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     ItemId = table.Column<int>(type: "int", nullable: false),
-                    Quantitiy = table.Column<int>(type: "int", nullable: false)
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    TotalPrice = table.Column<double>(type: "float", nullable: false),
+                    VoucherPrice = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -40,6 +42,23 @@ namespace minishopapi.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Items", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SoldProducts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    ProductName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    totalPrice = table.Column<double>(type: "float", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SoldProducts", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -71,7 +90,8 @@ namespace minishopapi.Migrations
                     Price = table.Column<int>(type: "int", nullable: false),
                     IsValid = table.Column<bool>(type: "bit", nullable: false),
                     ValidDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedBy = table.Column<int>(type: "int", nullable: false)
+                    CreatedBy = table.Column<int>(type: "int", nullable: false),
+                    IsUsed = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -87,6 +107,9 @@ namespace minishopapi.Migrations
 
             migrationBuilder.DropTable(
                 name: "Items");
+
+            migrationBuilder.DropTable(
+                name: "SoldProducts");
 
             migrationBuilder.DropTable(
                 name: "Users");
