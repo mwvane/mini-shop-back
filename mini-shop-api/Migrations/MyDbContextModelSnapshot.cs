@@ -97,6 +97,9 @@ namespace minishopapi.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int>("VoucherPrice")
+                        .HasColumnType("int");
+
                     b.Property<double>("totalPrice")
                         .HasColumnType("float");
 

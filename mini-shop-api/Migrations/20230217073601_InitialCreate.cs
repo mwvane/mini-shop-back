@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace minishopapi.Migrations
 {
     /// <inheritdoc />
-    public partial class Initialcreate : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -54,7 +54,8 @@ namespace minishopapi.Migrations
                     ProductName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
-                    totalPrice = table.Column<double>(type: "float", nullable: false)
+                    totalPrice = table.Column<double>(type: "float", nullable: false),
+                    VoucherPrice = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

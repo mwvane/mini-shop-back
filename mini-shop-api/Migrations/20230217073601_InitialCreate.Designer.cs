@@ -12,8 +12,8 @@ using mini_shop_api.Models;
 namespace minishopapi.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20230216185547_Initialcreate")]
-    partial class Initialcreate
+    [Migration("20230217073601_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -98,6 +98,9 @@ namespace minishopapi.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VoucherPrice")
                         .HasColumnType("int");
 
                     b.Property<double>("totalPrice")
