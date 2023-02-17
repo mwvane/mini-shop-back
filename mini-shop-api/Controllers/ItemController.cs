@@ -153,7 +153,8 @@ namespace mini_shop_api.Controllers
                 }
                 else
                 {
-                    payload.TotalPrice = payload.TotalPrice - payload.VoucherPrice;
+                    var product = _context.Items.Where(item => item.Id == payload.ItemId).FirstOrDefault();
+                    payload.TotalPrice = Convert.ToDouble(payload.Quantity * product.Price - payload.VoucherPrice);
                     _context.Cart.Add(payload);
                     _context.SaveChanges();
                     UpdateCartItemQuantity(new Dictionary<string, int>() { { "id", payload.Id }, { "quantity", 1 } });
@@ -161,11 +162,10 @@ namespace mini_shop_api.Controllers
                     {
                         Id = payload.Id,
                         User = _context.Users.Where(val => val.Id == payload.UserId).FirstOrDefault(),
-                        Item = _context.Items.Where(val => val.Id == payload.ItemId).FirstOrDefault(),
+                        Item = product,
                         Quantity = payload.Quantity,
                         TotalPrice = payload.TotalPrice,
                         voucherPrice = payload.VoucherPrice,
-
                     };
                     return new Result() { Res = cartItem };
                 }
@@ -188,6 +188,7 @@ namespace mini_shop_api.Controllers
                     UserId = cartItem.UserId,
                     Quantity = cartItem.Quantity,
                     totalPrice = cartItem.TotalPrice,
+                    VoucherPrice = cartItem.VoucherPrice,
                 };
                 _context.SoldProducts.Add(soldProduct);
                 _context.Cart.Remove(cartItem);

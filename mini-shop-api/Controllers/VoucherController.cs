@@ -16,11 +16,32 @@ namespace mini_shop_api.Controllers
             _context = context;
         }
 
-        [Authorize]
+        [Authorize(Roles ="admin,seller")]
         [HttpGet("getAllVouchers")]
         public List<Voucher> GetAllVouchers()
         {
-            return this._context.Vouchers.ToList();
+            int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value);
+            var user = _context.Users.Where(item => item.Id == userId).FirstOrDefault();
+            if(user != null)
+            {
+                if(user.Role == "admin")
+                {
+                    return this._context.Vouchers.ToList();
+                }
+                if(user.Role == "seller")
+                {
+                    var sellerVouchers = new List<Voucher>();
+                    foreach (var item in _context.Vouchers.ToList())
+                    {
+                        if(item.CreatedBy == user.Id)
+                        {
+                            sellerVouchers.Add(item);
+                        }
+                    }
+                    return sellerVouchers;
+                }
+            }
+            return new List<Voucher>();
         }
 
         [Authorize]

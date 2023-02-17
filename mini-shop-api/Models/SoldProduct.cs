@@ -15,5 +15,7 @@ namespace mini_shop_api.Models
         public int Quantity { get; set; }
         [Required]
         public double totalPrice { get; set; }
+        [Required]
+        public int VoucherPrice { get; set; }
     }
 }
