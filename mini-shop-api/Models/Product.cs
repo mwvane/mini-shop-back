@@ -2,16 +2,17 @@
 
 namespace mini_shop_api.Models
 {
-    public class Cart
+    public class Product
     {
         [Key]
         public int Id { get; set; }
-        public int UserId { get; set; }
         [Required]
-        public int ItemId { get; set; }
+        public string Name { get; set; }
         [Required]
         public int Quantity { get; set; }
-        public double TotalPrice { get; set; }
-        public int VoucherPrice { get; set; } = 0;
+        [Required]
+        public decimal Price { get; set; }
+        [Required]
+        public int CreatedBy { get; set; }
     }
 }

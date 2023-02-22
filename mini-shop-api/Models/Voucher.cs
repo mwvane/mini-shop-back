@@ -11,12 +11,11 @@ namespace mini_shop_api.Models
         [Required]
         public int Price { get; set; }
         [Required]
-        public bool IsValid { get; set; }
-        [Required]
         public DateTime ValidDate { get; set; }
         [Required]
+        public string Status { get; set; }
+        [Required]
         public int CreatedBy { get; set; }
-        public bool IsUsed { get; set; } = false;
 
     }
 }
