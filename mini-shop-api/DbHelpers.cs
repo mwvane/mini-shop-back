@@ -85,10 +85,10 @@ namespace mini_shop_api
                 Role = user[6] is string ? Convert.ToString(user[6]) : "",
             };
         }
-        public static Item GetItemById(int id, IConfiguration config)
+        public static Product GetItemById(int id, IConfiguration config)
         {
-            object?[] item = DbHelpers.Select($"Select * from Items where id = {id}", 0, config);
-            return new Item()
+            object?[] item = DbHelpers.Select($"Select * from Products where id = {id}", 0, config);
+            return new Product()
             {
                 Id = Convert.ToInt32(item[0]),
                 Name = item[1] is string ? Convert.ToString(item[1]) : "",

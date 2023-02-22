@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using mini_shop_api.Helpers;
 using mini_shop_api.Models;
 
 namespace mini_shop_api.Controllers
@@ -15,10 +16,10 @@ namespace mini_shop_api.Controllers
         }
 
         [Authorize]
-        [HttpGet("getAllItems")]
-        public List<Item> GetAllItems()
+        [HttpGet("getAllProducts")]
+        public List<Product> GetAllProducts()
         {
-            return _context.Items.ToList();
+            return _context.Products.ToList();
         }
 
         [Authorize]
@@ -30,54 +31,59 @@ namespace mini_shop_api.Controllers
 
         [Authorize]
         [HttpGet("getCartItems")]
-        public List<CartItem> GetCartItems(int id)
+        public List<CartItemFront> GetCartItems(int id)
+
         {
-            List<Cart> cart = _context.Cart.Where(c => c.UserId == id).ToList();
-            List<CartItem> cartItems = new List<CartItem>();
-            foreach (var item in cart)
+            List<CartItem> cartItem = _context.CartItems.Where(c => c.UserId == id).ToList();
+            List<CartItemFront> cartItemsFront = new List<CartItemFront>();
+            foreach (var item in cartItem)
             {
-                CartItem cartItem = new CartItem()
-                {
-                    Id = item.Id,
-                    User = _context.Users.Where(val => val.Id == item.UserId).FirstOrDefault(),
-                    Item = _context.Items.Where(val => val.Id == item.ItemId).FirstOrDefault(),
-                    Quantity = item.Quantity,
-                    TotalPrice = item.TotalPrice,
-                    voucherPrice = item.VoucherPrice,
-                };
-                cartItems.Add(cartItem);
+                cartItemsFront.Add(Helper.ConvertCartItemForFront(item, _context));
             }
-            return cartItems;
+            return cartItemsFront;
 
         }
 
 
         [Authorize]
-        [HttpGet("getItem")]
-        public Item GetItem(int id)
+        [HttpGet("getProductById")]
+        public Product GetProductById(int id)
         {
-            return _context.Items.Where(item => item.Id == id).FirstOrDefault();
+            return _context.Products.Where(item => item.Id == id).FirstOrDefault();
         }
 
-        [HttpGet("getCartCount")]
-        public int GetCartCount(int id)
+        [Authorize]
+        [HttpGet("getUserById")]
+        public User GetUserById(int id)
+        {
+            return _context.Users.Where(item => item.Id == id).FirstOrDefault();
+        }
+
+        [HttpGet("getCartItemsCount")]
+        public int GetCartItemsCount(int id)
         {
             return GetCartItems(id).Count;
         }
 
         [Authorize]
         [HttpPost("updateCartItem")]
-        public Result UpdateCartItem([FromBody] CartItem cartItem)
+        public Result UpdateCartItem([FromBody] CartItemFront cartItem)
         {
-            Cart item = _context.Cart.Where(val => val.Id == cartItem.Id).FirstOrDefault();
+            CartItem item = _context.CartItems.Where(val => val.Id == cartItem.Id).FirstOrDefault();
             if (item == null)
             {
                 return new Result() { Errors = new List<string>() { "პროდუქტი ვერ მოიძებნა" } };
             }
-            item.VoucherPrice = cartItem.voucherPrice;
-            item.Quantity = cartItem.Quantity;
+            var newCartItem = Helper.ConvertCartItemForBack(cartItem, _context);
+            item.VoucherId = newCartItem.VoucherId;
+            item.UserId = newCartItem.UserId;
+            item.ProductId = newCartItem.ProductId;
+            item.Quantity = newCartItem.Quantity;
+            item.TotalPrice = newCartItem.TotalPrice;
+            item.VoucherAmount = newCartItem.VoucherAmount;
+            _context.CartItems.Update(item);
             _context.SaveChanges();
-            return new Result() { Res = true };
+            return new Result() { Res = Helper.ConvertCartItemForFront(item, _context) };
         }
 
         [Authorize]
@@ -88,16 +94,16 @@ namespace mini_shop_api.Controllers
             int quantity = payload["quantity"];
             try
             {
-                Cart c = _context.Cart.Where(cartItem => cartItem.Id == cartId).FirstOrDefault();
+                CartItem c = _context.CartItems.Where(cartItem => cartItem.Id == cartId).FirstOrDefault();
                 if (c != null)
                 {
-                    Item currentItem = GetItem(c.ItemId);
+                    Product currentItem = GetProductById(c.ProductId);
                     if (currentItem != null)
                     {
                         if (currentItem.Quantity > 0 || quantity < 0)
                         {
                             c.Quantity += quantity;
-                            double totalPrice = Convert.ToDouble(c.Quantity * currentItem.Price - c.VoucherPrice);
+                            double totalPrice = Convert.ToDouble(c.Quantity * currentItem.Price);
                             if (totalPrice > 0)
                             {
                                 c.TotalPrice = totalPrice;
@@ -125,12 +131,40 @@ namespace mini_shop_api.Controllers
         [HttpPost("deleteCartItem")]
         public bool DeleteCartItem([FromBody] int itemId)
         {
-            Cart c = _context.Cart.Where(item => item.Id == itemId).FirstOrDefault();
-            Item item = GetItem(c.ItemId);
-            if (c != null)
+            var cartItem = _context.CartItems.Where(item => item.Id == itemId).FirstOrDefault();
+            Product item = GetProductById(cartItem.ProductId);
+            if (cartItem != null)
             {
-                item.Quantity += c.Quantity;
-                _context.Cart.Remove(c);
+
+                item.Quantity += cartItem.Quantity;
+                if (cartItem.VoucherId != null)
+                {
+                    var voucher = _context.Vouchers.Where(item => item.Id == cartItem.VoucherId).FirstOrDefault();
+                    if (voucher != null)
+                    {
+                        if (cartItem.VoucherAmount != null)
+                        {
+                            var cartItemFront = Helper.ConvertCartItemForFront(cartItem, _context);
+                            if (cartItemFront != null && cartItemFront.Voucher.Status == "valid")
+                            {
+                                voucher.Price += Convert.ToInt32(cartItem.VoucherAmount);
+                            }
+
+                        }
+                        if (voucher.ValidDate < DateTime.Now)
+                        {
+                            voucher.Status = "expired";
+                        }
+                        else if (voucher.Status == "preUsed")
+                        {
+                            voucher.Status = "valid";
+                        }
+                        _context.Vouchers.Update(voucher);
+
+                    }
+
+                }
+                _context.CartItems.Remove(cartItem);
                 _context.SaveChanges();
                 return true;
             }
@@ -138,36 +172,27 @@ namespace mini_shop_api.Controllers
         }
         [Authorize]
         [HttpPost("addToCart")]
-        public Result AddToCart([FromBody] Cart payload)
+        public Result AddToCart([FromBody] CartItem payload)
         {
-            var isExist = _context.Cart.Where(item => item.UserId == payload.UserId && item.ItemId == payload.ItemId).FirstOrDefault();
+            var cartItemFront = Helper.ConvertCartItemForFront(payload, _context);
+            var isExist = _context.CartItems.Where(item => item.UserId == payload.UserId && item.ProductId == payload.ProductId).FirstOrDefault();
             if (isExist != null)
             {
                 return new Result() { Errors = new List<string> { "პროდუქტი უკვე არსებობს კალათაში" } };
             }
             else
             {
-                if (payload.Quantity > GetItem(payload.ItemId).Quantity)
+                if (payload.Quantity > cartItemFront.Product.Quantity)
                 {
                     return new Result() { Errors = new List<string> { "მარაგი ამოიწურა!" } };
                 }
                 else
                 {
-                    var product = _context.Items.Where(item => item.Id == payload.ItemId).FirstOrDefault();
-                    payload.TotalPrice = Convert.ToDouble(payload.Quantity * product.Price - payload.VoucherPrice);
-                    _context.Cart.Add(payload);
+                    payload.TotalPrice = Convert.ToDouble(payload.Quantity * cartItemFront.Product.Price);
+                    _context.CartItems.Add(payload);
                     _context.SaveChanges();
                     UpdateCartItemQuantity(new Dictionary<string, int>() { { "id", payload.Id }, { "quantity", 1 } });
-                    CartItem cartItem = new CartItem()
-                    {
-                        Id = payload.Id,
-                        User = _context.Users.Where(val => val.Id == payload.UserId).FirstOrDefault(),
-                        Item = product,
-                        Quantity = payload.Quantity,
-                        TotalPrice = payload.TotalPrice,
-                        voucherPrice = payload.VoucherPrice,
-                    };
-                    return new Result() { Res = cartItem };
+                    return new Result() { Res = Helper.ConvertCartItemForFront(payload, _context) };
                 }
 
             }
@@ -177,39 +202,53 @@ namespace mini_shop_api.Controllers
         [HttpPost("buyProduct")]
         public Result BuyProduct([FromBody] int id)
         {
-            Cart cartItem = _context.Cart.Where(item => item.Id == id).FirstOrDefault();
+            CartItem cartItem = _context.CartItems.Where(item => item.Id == id).FirstOrDefault();
             if (cartItem != null)
             {
-                var item = _context.Items.Where(val => val.Id == cartItem.ItemId).FirstOrDefault();
-                var soldProduct = new SoldProduct()
+                var item = _context.Products.Where(val => val.Id == cartItem.ProductId).FirstOrDefault();
+                if (item.Quantity < cartItem.Quantity)
                 {
-                    ProductId = cartItem.ItemId,
-                    ProductName = item.Name,
+                    cartItem.Quantity = item.Quantity;
+                    _context.CartItems.Update(cartItem);
+                    _context.SaveChanges();
+                    return new Result() { Errors = new List<string>() { $"საწყობში სულ {item.Quantity} პროდუქტია" } };
+                }
+                if (cartItem.VoucherId != null)
+                {
+                    var voucher = _context.Vouchers.Where(item => item.Id == cartItem.VoucherId).FirstOrDefault();
+                    voucher.Status = "used";
+                    _context.Vouchers.Update(voucher);
+                    _context.SaveChanges();
+                }
+                var soldProduct = new Order()
+                {
+                    ProductId = cartItem.ProductId,
                     UserId = cartItem.UserId,
                     Quantity = cartItem.Quantity,
-                    totalPrice = cartItem.TotalPrice,
-                    VoucherPrice = cartItem.VoucherPrice,
+                    TotalPrice = cartItem.TotalPrice,
+                    VoucherId = cartItem.VoucherId,
+                    CreateDate = DateTime.Now,
+                    VoucherAmount = Convert.ToInt32(cartItem.VoucherAmount),
                 };
-                _context.SoldProducts.Add(soldProduct);
-                _context.Cart.Remove(cartItem);
+                _context.Orders.Add(soldProduct);
+                _context.CartItems.Remove(cartItem);
                 _context.SaveChanges();
-                return new Result() { Res = soldProduct };
+                return new Result() { Res = Helper.ConvertOrderForFront(soldProduct, _context) };
             }
             return new Result() { Errors = new List<string>() { "პროდუქტი ვერ მოიძებნა" } };
         }
 
         [Authorize]
-        [HttpGet("getSoldProducts")]
-        public Result GetSoldProducts(int userId)
+        [HttpGet("getOrders")]
+        public Result GetOrders(int userId)
         {
-            List<SoldProduct> myProducts = new List<SoldProduct>();
-            var products = _context.SoldProducts.ToList();
+            List<OrderFront> myProducts = new List<OrderFront>();
+            var products = _context.Orders.ToList();
             foreach (var item in products)
             {
-                object product = new object();
                 if (item.UserId == userId)
                 {
-                    myProducts.Add(item);
+                    myProducts.Add(Helper.ConvertOrderForFront(item, _context));
                 }
             };
             return new Result() { Res = myProducts };

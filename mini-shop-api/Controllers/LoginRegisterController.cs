@@ -61,7 +61,7 @@ namespace mini_shop_api.Controllers
                     Firstname = payload.Firstname,
                     Lastname = payload.Lastname,
                     Password = payload.Password,
-                    Role = payload.Role != null ? payload.Role : "user",
+                    Role = payload.Role != null ? payload.Role : "client",
                     LastUpdated = DateTime.Now
                 };
                 List<string> errors = Validateuser(newUser);

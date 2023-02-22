@@ -26,7 +26,7 @@ namespace mini_shop_api.Controllers
         {
 
             Claim? loggeduserId = User.Claims.FirstOrDefault(x => x.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase));
-            List<Item> items = new List<Item>();
+            List<Product> items = new List<Product>();
             if (loggeduserId == null)
             {
                 return new Result() { Errors = new List<string> { "შეცდომაა, სცადე თავიდან!" } };
@@ -36,7 +36,7 @@ namespace mini_shop_api.Controllers
             {
                 foreach (var id in itemIds)
                 {
-                    Item item = DbHelpers.GetItemById(id, this._configuration);
+                    Product item = DbHelpers.GetItemById(id, this._configuration);
                     if (item != null)
                     {
                         items.Add(item);
@@ -57,15 +57,15 @@ namespace mini_shop_api.Controllers
                     {
                         return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის შექმნის უფლება" } };
                     }
-                    bool result = DbHelpers.CRUD($"Delete from Items where id = @0", new List<object> { item.Id }, _configuration);
+                    bool result = DbHelpers.CRUD($"Delete from Products where id = @0", new List<object> { item.Id }, _configuration);
                     if (result)
                     {
-                        List<object?[]> productIds = DbHelpers.SelectMultiple($"select id from Cart where itemId = {item.Id}", _configuration);
+                        List<object?[]> productIds = DbHelpers.SelectMultiple($"select id from CartItems where ProductId = {item.Id}", _configuration);
                         if (productIds.Count() > 0)
                         {
                             foreach (var _idList in productIds)
                             {
-                                DbHelpers.CRUD($"Delete from Cart where id = @0", new List<object> { _idList[0] }, _configuration);
+                                DbHelpers.CRUD($"Delete from CartItems where id = @0", new List<object> { _idList[0] }, _configuration);
                             }
                         }
                     }
@@ -82,7 +82,7 @@ namespace mini_shop_api.Controllers
 
 
         [HttpPost("updateItem")]
-        public Result UpdateItem([FromBody] Item newItem)
+        public Result UpdateItem([FromBody] Product newItem)
         {
             Claim? id = User.Claims.FirstOrDefault(x => x.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase));
             if (id == null)
@@ -90,7 +90,7 @@ namespace mini_shop_api.Controllers
                 return new Result() { Errors = new List<string> { "შეცდომაა, სცადე თავიდან!" } };
 
             }
-            Item item;
+            Product item;
             try
             {
                 item = DbHelpers.GetItemById(newItem.Id, this._configuration);
@@ -107,7 +107,7 @@ namespace mini_shop_api.Controllers
             }
 
             bool isUpdated = DbHelpers.CRUD(
-                $"Update Items Set Name = @0 ,Quantity = @1, Price = @2 where id = @3", new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.Id }, _configuration);
+                $"Update Products Set Name = @0 ,Quantity = @1, Price = @2 where id = @3", new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.Id }, _configuration);
 
             if (isUpdated)
             {
@@ -119,7 +119,7 @@ namespace mini_shop_api.Controllers
 
 
         [HttpPost("createItem")]
-        public Result CreateItem([FromBody] Item newItem)
+        public Result CreateItem([FromBody] Product newItem)
         {
             Claim? id = User.Claims.FirstOrDefault(x => x.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase));
             if (id == null)
@@ -134,7 +134,7 @@ namespace mini_shop_api.Controllers
                 return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის წაშლის უფლება" } };
             }
 
-            bool isInserted = DbHelpers.CRUD($"Insert into Items(Name,Quantity,Price,CreatedBy)values(@0,@1,@2,@3)", new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.CreatedBy }, _configuration);
+            bool isInserted = DbHelpers.CRUD($"Insert into Products(Name,Quantity,Price,CreatedBy)values(@0,@1,@2,@3)", new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.CreatedBy }, _configuration);
             if (isInserted)
             {
                 return new Result() { Res = true };

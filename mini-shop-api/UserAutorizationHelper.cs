@@ -14,7 +14,7 @@ namespace mini_shop_api
             }
             return true;
         }
-        public static bool CanUpdateItem(User user, Item item)
+        public static bool CanUpdateItem(User user, Product item)
         {
             if (user == null) return false;
             if (user.Role == "user")
@@ -27,7 +27,7 @@ namespace mini_shop_api
             }
             return true;
         }
-        public static bool CanDeleteItem(User user, Item item)
+        public static bool CanDeleteItem(User user, Product item)
         {
             return CanUpdateItem(user, item);
         }

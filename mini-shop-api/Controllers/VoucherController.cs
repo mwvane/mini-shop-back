@@ -16,24 +16,24 @@ namespace mini_shop_api.Controllers
             _context = context;
         }
 
-        [Authorize(Roles ="admin,seller")]
+        [Authorize(Roles = "admin,seller")]
         [HttpGet("getAllVouchers")]
         public List<Voucher> GetAllVouchers()
         {
             int userId = int.Parse(this.User.Claims.First(i => i.Type == "id").Value);
             var user = _context.Users.Where(item => item.Id == userId).FirstOrDefault();
-            if(user != null)
+            if (user != null)
             {
-                if(user.Role == "admin")
+                if (user.Role == "admin")
                 {
                     return this._context.Vouchers.ToList();
                 }
-                if(user.Role == "seller")
+                if (user.Role == "seller")
                 {
                     var sellerVouchers = new List<Voucher>();
                     foreach (var item in _context.Vouchers.ToList())
                     {
-                        if(item.CreatedBy == user.Id)
+                        if (item.CreatedBy == user.Id)
                         {
                             sellerVouchers.Add(item);
                         }
@@ -45,12 +45,33 @@ namespace mini_shop_api.Controllers
         }
 
         [Authorize]
+        [HttpGet("getVoucherById")]
+        public Voucher GetUserById(int id)
+        {
+            return _context.Vouchers.Where(item => item.Id == id).FirstOrDefault();
+        }
+
+        [Authorize]
         [HttpGet("getVoucher")]
         public Result GetVoucher(string key)
         {
             var voucher = this._context.Vouchers.Where(voucher => voucher.Key == key).FirstOrDefault();
             if (voucher != null)
             {
+                if(voucher.ValidDate < DateTime.Now)
+                {
+                    if(voucher.Status != "expired")
+                    {
+                        voucher.Status = "expired";
+                        UpdateVoucher(voucher);
+                    }
+                    return new Result() { Errors = new List<string>() { "ვაუჩერი ვადაგასულია" } };
+                }
+                else if(voucher.Status == "used")
+                {
+                    return new Result() { Errors = new List<string>() { "ვაუჩერი უკვე გამოყენებულია" } };
+
+                }
                 return new Result() { Res = voucher };
             }
             return new Result() { Errors = new List<string> { "ვაუჩერი ვერ მოიძებნა!" } };
@@ -80,8 +101,11 @@ namespace mini_shop_api.Controllers
                 else
                 {
                     Claim? loggeduserId = User.Claims.FirstOrDefault(x => x.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase));
+                    if (voucher.ValidDate < DateTime.Now)
+                    {
+                        voucher.Status = "expired";
+                    };
                     voucher.CreatedBy = Convert.ToInt32(loggeduserId.Value);
-                    voucher.IsValid = voucher.ValidDate.Day - DateTime.Now.Day > 0 ? true : false;
                     _context.Vouchers.Add(voucher);
                     _context.SaveChanges();
                     return new Result() { Res = voucher };
@@ -106,10 +130,13 @@ namespace mini_shop_api.Controllers
                 }
                 else
                 {
-                    voucher.IsValid = voucher.ValidDate.Day - DateTime.Now.Day > 0 ? true : false;
+                    if(voucher.ValidDate < DateTime.Now)
+                    {
+                        voucher.Status = "expired";
+                    }
                     _context.Vouchers.Update(voucher);
                     _context.SaveChanges();
-                    return new Result() { Res = true };
+                    return new Result() { Res = voucher };
                 }
             }
         }
