@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using mini_shop_api.Models;
 
@@ -11,9 +12,11 @@ using mini_shop_api.Models;
 namespace minishopapi.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230222090952_Add_VoucherAmount_to_CartItems")]
+    partial class AddVoucherAmounttoCartItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,11 +45,11 @@ namespace minishopapi.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<double?>("VoucherAmount")
-                        .HasColumnType("float");
-
                     b.Property<int?>("VoucherId")
                         .HasColumnType("int");
+
+                    b.Property<double>("voucherAmount")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -61,9 +64,6 @@ namespace minishopapi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("CreateDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
@@ -76,15 +76,13 @@ namespace minishopapi.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("VoucherAmount")
-                        .HasColumnType("int");
-
                     b.Property<int?>("VoucherId")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Orders");
+                    b.ToTable("SoldProducts");
                 });
 
             modelBuilder.Entity("mini_shop_api.Models.Product", b =>
