@@ -71,7 +71,7 @@ namespace mini_shop_api.Controllers
                     try
                     {
                         _context.SaveChanges();
-                        return new Result() { Res = newUser.Id };
+                        return new Result() { Res = newUser };
                     }
                     catch (Exception exp)
                     {
