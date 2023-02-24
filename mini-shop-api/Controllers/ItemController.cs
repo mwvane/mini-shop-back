@@ -253,5 +253,17 @@ namespace mini_shop_api.Controllers
             };
             return new Result() { Res = myProducts };
         }
+        [Authorize]
+        [HttpGet("getAllOrders")]
+        public Result GetAllOrders(int userId)
+        {
+            List<OrderFront> myProducts = new List<OrderFront>();
+            var products = _context.Orders.ToList();
+            foreach (var item in products)
+            {
+                myProducts.Add(Helper.ConvertOrderForFront(item, _context));
+            }
+            return new Result() { Res = myProducts };
+        }
     }
 }

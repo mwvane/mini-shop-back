@@ -53,28 +53,47 @@ namespace mini_shop_api.Controllers
 
         [Authorize]
         [HttpGet("getVoucher")]
-        public Result GetVoucher(string key)
+        public Result GetVoucher(string key, int productId)
         {
+            var product = this._context.Products.Where(item => item.Id == productId).FirstOrDefault();
             var voucher = this._context.Vouchers.Where(voucher => voucher.Key == key).FirstOrDefault();
-            if (voucher != null)
+            string? productCreatorRole = null;
+            string? voucherCreatorRole = null;
+            if (product != null && voucher != null)
             {
-                if(voucher.ValidDate < DateTime.Now)
+                var productCreator = _context.Users.Where(user => user.Id == product.CreatedBy).FirstOrDefault();
+                if (productCreator != null)
                 {
-                    if(voucher.Status != "expired")
-                    {
-                        voucher.Status = "expired";
-                        UpdateVoucher(voucher);
-                    }
-                    return new Result() { Errors = new List<string>() { "ვაუჩერი ვადაგასულია" } };
+                    productCreatorRole = productCreator.Role;
                 }
-                else if(voucher.Status == "used")
+                var voucherCreator = _context.Users.Where(user => user.Id == voucher.CreatedBy).FirstOrDefault();
+                if (voucherCreator != null)
                 {
-                    return new Result() { Errors = new List<string>() { "ვაუჩერი უკვე გამოყენებულია" } };
+                    voucherCreatorRole = voucherCreator.Role;
+                }
 
+                if ((product.CreatedBy == voucher.CreatedBy && productCreatorRole == "seller") || voucherCreatorRole == "admin")
+                {
+                    if (voucher.ValidDate < DateTime.Now)
+                    {
+                        if (voucher.Status != "expired")
+                        {
+                            voucher.Status = "expired";
+                            UpdateVoucher(voucher);
+                        }
+                        return new Result() { Errors = new List<string>() { "ვაუჩერი ვადაგასულია" } };
+                    }
+                    else if (voucher.Status == "used")
+                    {
+                        return new Result() { Errors = new List<string>() { "ვაუჩერი უკვე გამოყენებულია" } };
+
+                    }
+                    return new Result() { Res = voucher };
                 }
-                return new Result() { Res = voucher };
+
+                return new Result() { Errors = new List<string> { "აღნიშნულ პროდუქტზე , მითითებული ვაუჩერის გამოყენება შეუძლებელია!" } };
             }
-            return new Result() { Errors = new List<string> { "ვაუჩერი ვერ მოიძებნა!" } };
+            return new Result() { Errors = new List<string> { "პროდუქტი ვერ მოიძებნა!" } };
         }
 
         [Authorize(Roles = "admin,seller")]
@@ -114,7 +133,7 @@ namespace mini_shop_api.Controllers
         }
 
 
-        [Authorize(Roles = "admin,seller")]
+        [Authorize]
         [HttpPost("updateVoucher")]
         public Result UpdateVoucher([FromBody] Voucher voucher)
         {
@@ -130,7 +149,7 @@ namespace mini_shop_api.Controllers
                 }
                 else
                 {
-                    if(voucher.ValidDate < DateTime.Now)
+                    if (voucher.ValidDate < DateTime.Now)
                     {
                         voucher.Status = "expired";
                     }
