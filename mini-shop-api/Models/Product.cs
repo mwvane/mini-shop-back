@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Buffers.Text;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace mini_shop_api.Models
 {
@@ -14,5 +16,7 @@ namespace mini_shop_api.Models
         public decimal Price { get; set; }
         [Required]
         public int CreatedBy { get; set; }
+        [AllowNull]
+        public string? Document { get; set; }
     }
 }
