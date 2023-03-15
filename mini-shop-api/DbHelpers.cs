@@ -10,22 +10,31 @@ namespace mini_shop_api
     public static class DbHelpers
     {
 
-        public static bool CRUD(string query, List<object> values, IConfiguration config)
+        public static int? CRUD(string query, List<object> values, IConfiguration config)
         {
             try
             {
                 SqlConnection connection = new SqlConnection(config.GetConnectionString("MyDbContext"));
                 SqlCommand command = new SqlCommand(query, connection);
-                connection.Open();
+                int? productId = null;
                 for (int i = 0; i < values.Count; i++)
                 {
                     command.Parameters.AddWithValue($"@{i}", values[i]);
                 }
-                command.ExecuteNonQuery();
-                connection.Close();
-                return true;
+                connection.Open();
+                object returnObj = command.ExecuteScalar();
+                if(returnObj != null )
+                {
+                    productId = Convert.ToInt32(returnObj);
+                }
+
+                if (connection.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+                return productId;
             }
-            catch { return false; }
+            catch { return null; }
         }
         public static object?[] Select(string query, int roxIndex, IConfiguration config)
         {

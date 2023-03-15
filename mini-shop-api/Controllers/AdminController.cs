@@ -57,8 +57,8 @@ namespace mini_shop_api.Controllers
                     {
                         return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის შექმნის უფლება" } };
                     }
-                    bool result = DbHelpers.CRUD($"Delete from Products where id = @0", new List<object> { item.Id }, _configuration);
-                    if (result)
+                    int? result = DbHelpers.CRUD($"Delete from Products where id = @0", new List<object> { item.Id }, _configuration);
+                    if (result != null)
                     {
                         List<object?[]> productIds = DbHelpers.SelectMultiple($"select id from CartItems where ProductId = {item.Id}", _configuration);
                         if (productIds.Count() > 0)
@@ -106,10 +106,10 @@ namespace mini_shop_api.Controllers
                 return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის განახლების უფლება" } };
             }
 
-            bool isUpdated = DbHelpers.CRUD(
+            int? isUpdated = DbHelpers.CRUD(
                 $"Update Products Set Name = @0 ,Quantity = @1, Price = @2 where id = @3", new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.Id }, _configuration);
 
-            if (isUpdated)
+            if (isUpdated != null)
             {
                 return new Result() { Res = true };
             }
@@ -134,10 +134,10 @@ namespace mini_shop_api.Controllers
                 return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის წაშლის უფლება" } };
             }
 
-            bool isInserted = DbHelpers.CRUD($"Insert into Products(Name,Quantity,Price,CreatedBy)values(@0,@1,@2,@3)", new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.CreatedBy }, _configuration);
-            if (isInserted)
+            int? productId = DbHelpers.CRUD($"Insert into Products(Name,Quantity,Price,CreatedBy)values(@0,@1,@2,@3); SELECT SCOPE_IDENTITY()", new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.CreatedBy }, _configuration);
+            if (productId != null)
             {
-                return new Result() { Res = true };
+                return new Result() { Res = productId };
             }
             return new Result() { Errors = new List<string> { "პროდუქტი ვერ მოიძებნა" } };
         }

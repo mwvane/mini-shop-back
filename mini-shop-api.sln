@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mini-shop-api", "mini-shop-api\mini-shop-api.csproj", "{B58F6E78-4559-4449-ACDA-22A2E5E01EAE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mini-shop-api", "mini-shop-api\mini-shop-api.csproj", "{B58F6E78-4559-4449-ACDA-22A2E5E01EAE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

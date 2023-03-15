@@ -55,7 +55,7 @@ namespace mini_shop_api
             app.UseAuthorization();
             app.UseCors("corspolicy");
             app.MapControllers();
-
+            app.UseStaticFiles();
             app.Run();
         }
     }
