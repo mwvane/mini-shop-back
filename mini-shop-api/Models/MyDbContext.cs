@@ -11,6 +11,7 @@ namespace mini_shop_api.Models
         public DbSet<Voucher> Vouchers { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
+        public DbSet<ProductDocument> ProductDocuments { get; set; }
 
     }
 }
