@@ -6,7 +6,7 @@ namespace mini_shop_api.Models
     {
         public int Id { get; set; }
         public User? User { get; set; }
-        public Product? Product { get; set; }
+        public ProductFront? Product { get; set; }
         public int Quantity { get; set; }
         public double TotalPrice { get; set; }
         public Voucher? Voucher { get; set; }

@@ -17,9 +17,14 @@ namespace mini_shop_api.Controllers
 
         [Authorize]
         [HttpGet("getAllProducts")]
-        public List<Product> GetAllProducts()
+        public List<ProductFront> GetAllProducts()
         {
-            return _context.Products.ToList();
+            List<ProductFront> products = new List<ProductFront>();
+            foreach (var item in _context.Products.ToList())
+            {
+                products.Add(Helper.ConvertProductForFront(item, _context));
+            }
+            return products;
         }
 
         [Authorize]

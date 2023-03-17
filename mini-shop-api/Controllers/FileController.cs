@@ -17,30 +17,73 @@ namespace mini_shop_api.Controllers
         }
 
         [Authorize]
-        [HttpPost("uplaodFile"), DisableRequestSizeLimit]
-        public bool UploadProductImage([FromForm] UploadFile files)
+        [HttpPost("uploadProductImage"), DisableRequestSizeLimit]
+        public List<string>? UploadProductImage([FromForm] UploadFile files)
         {
             try
             {
-                var file = Request.Form.Files[0];
                 var foldername = Path.Combine("Resources", "Images");
                 var pathTosave = Path.Combine(Directory.GetCurrentDirectory(), foldername);
-                if(file.Length> 0)
+                List<string> imageUrls = new List<string>();
+                foreach (var item in files.files)
                 {
-                    var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim().ToString();
-                    var fullPath = Path.Combine(pathTosave, fileName);
-                    var dbPath = Path.Combine(foldername, fileName);
-                     using(var stream = new FileStream(fullPath,FileMode.Create))
+                    if (item.Length > 0)
                     {
-                        file.CopyTo(stream);
-                        return true;
+                        var fileName = ContentDispositionHeaderValue.Parse(item.ContentDisposition).FileName.Trim().ToString();
+                        var fullPath = Path.Combine(pathTosave, fileName);
+                        var dbPath = Path.Combine(foldername, fileName);
+                         using (var stream = new FileStream(fullPath, FileMode.Create))
+                        {
+                            item.CopyTo(stream);
+                            imageUrls.Add(fullPath);
+                        }
+                        _context.ProductImages.Add(new ProductImage() { ProductId = files.productId, ImageUrl = dbPath });
+
                     }
                 }
-                return false;
+                _context.SaveChanges();
+
+                return imageUrls;
             }
             catch
             {
-                return false;
+                return null;
+            }
+        }
+
+        [Authorize]
+        [HttpPost("uploadProductDocument"), DisableRequestSizeLimit]
+
+        public List<string> UploadProductDocument([FromForm] UploadFile files)
+        {
+            try
+            {
+                var foldername = Path.Combine("Resources", "Documents");
+                var pathTosave = Path.Combine(Directory.GetCurrentDirectory(), foldername);
+                List<string> documentUrls = new List<string>();
+                foreach (var item in files.files)
+                {
+                    if (item.Length > 0)
+                    {
+                        var fileName = ContentDispositionHeaderValue.Parse(item.ContentDisposition).FileName.Trim().ToString();
+                        var fullPath = Path.Combine(pathTosave, fileName);
+                        var dbPath = Path.Combine(foldername, fileName);
+                        using (var stream = new FileStream(fullPath, FileMode.Create))
+                        {
+                            item.CopyTo(stream);
+                            documentUrls.Add(fullPath);
+                        }
+                        _context.ProductDocuments.Add(new ProductDocument() { ProductId = files.productId, DocumentUrl = dbPath });
+
+                    }
+                }
+                _context.SaveChanges();
+
+                return documentUrls;
+            }
+            catch
+            {
+                return null;
             }
         }
 

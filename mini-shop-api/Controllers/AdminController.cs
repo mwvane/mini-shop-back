@@ -85,35 +85,39 @@ namespace mini_shop_api.Controllers
         public Result UpdateItem([FromBody] Product newItem)
         {
             Claim? id = User.Claims.FirstOrDefault(x => x.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase));
-            if (id == null)
-            {
-                return new Result() { Errors = new List<string> { "შეცდომაა, სცადე თავიდან!" } };
-
-            }
-            Product item;
             try
             {
-                item = DbHelpers.GetItemById(newItem.Id, this._configuration);
-            }
-            catch (Exception ex)
-            {
-                return new Result() { Errors = new List<string> { "პროდუქტი ვერ მოიძებნა" } };
-            }
+                if (id == null)
+                {
+                    return new Result() { Errors = new List<string> { "შეცდომაა, სცადე თავიდან!" } };
 
-            User user = DbHelpers.GetUserById(Convert.ToInt32(id.Value), this._configuration);
-            if (!UserAutorizationHelper.CanUpdateItem(user, item))
-            {
-                return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის განახლების უფლება" } };
-            }
+                }
+                Product item;
+                try
+                {
+                    item = DbHelpers.GetItemById(newItem.Id, this._configuration);
+                }
+                catch (Exception ex)
+                {
+                    return new Result() { Errors = new List<string> { "პროდუქტი ვერ მოიძებნა" } };
+                }
 
-            int? isUpdated = DbHelpers.CRUD(
-                $"Update Products Set Name = @0 ,Quantity = @1, Price = @2 where id = @3", new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.Id }, _configuration);
+                User user = DbHelpers.GetUserById(Convert.ToInt32(id.Value), this._configuration);
+                if (!UserAutorizationHelper.CanUpdateItem(user, item))
+                {
+                    return new Result() { Errors = new List<string> { "თქვენ არ გაქვთ პროდუქტის განახლების უფლება" } };
+                }
 
-            if (isUpdated != null)
-            {
+                int? isUpdated = DbHelpers.CRUD(
+                    $"Update Products Set Name = @0 ,Quantity = @1, Price = @2 where id = @3", new List<object> { newItem.Name, newItem.Quantity, newItem.Price, newItem.Id }, _configuration);
                 return new Result() { Res = true };
+
             }
-            return new Result() { Errors = new List<string>() { "პროდუქტი ვერ მოიძებნა" } };
+            catch
+            {
+                return new Result() { Errors = new List<string>() { "შეცდომაა" } };
+            }
+
         }
 
 
