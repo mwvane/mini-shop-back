@@ -38,7 +38,7 @@ namespace mini_shop_api.Helpers
             return new CartItemFront()
             {
                 Id = cartItem.Id,
-                Product = context.Products.Where(item => item.Id == cartItem.ProductId).FirstOrDefault(),
+                Product = ConvertProductForFront(context.Products.Where(item => item.Id == cartItem.ProductId).FirstOrDefault(), context),
                 Quantity = cartItem.Quantity,
                 TotalPrice = cartItem.TotalPrice,
                 User = context.Users.Where(item => item.Id == cartItem.UserId).FirstOrDefault(),
@@ -59,6 +59,35 @@ namespace mini_shop_api.Helpers
                 VoucherId = cartItemFront.Voucher == null ? null : cartItemFront.Voucher.Id,
                 VoucherAmount = cartItemFront.VoucherAmount,
 
+            };
+        }
+        public static ProductFront ConvertProductForFront(Product product, MyDbContext context)
+        {
+            List<string> productImageUrls = new List<string>();
+            List<string> productDocumentUrls = new List<string>();
+            foreach (var item in context.ProductImages)
+            {
+                if (item.ProductId == product.Id)
+                {
+                    productImageUrls.Add(Constants.DEFAULT_SERVER + item.ImageUrl);
+                }
+            }
+            foreach (var item in context.ProductDocuments)
+            {
+                if (item.ProductId == product.Id)
+                {
+                    productDocumentUrls.Add(Constants.DEFAULT_SERVER + item.DocumentUrl);
+                }
+            }
+            return new ProductFront()
+            {
+                Id = product.Id,
+                CreatedBy = product.CreatedBy,
+                Name = product.Name,
+                Price = product.Price,
+                Quantity = product.Quantity,
+                ImageUrls = productImageUrls,
+                DocumentUrls = productDocumentUrls,
             };
         }
     }
